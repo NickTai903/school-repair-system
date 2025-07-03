@@ -1,0 +1,64 @@
+// server.js
+const express = require('express');
+const cors = require('cors');
+const sqlite3 = require('sqlite3').verbose();
+const bodyParser = require('body-parser');
+const app = express();
+const db = new sqlite3.Database('./repairs.db');
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// 建立資料表（只會執行一次）
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS repairs (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    studentId TEXT,
+    grade TEXT,
+    class TEXT,
+    phone TEXT,
+    building TEXT,
+    location TEXT,
+    itemType TEXT,
+    description TEXT,
+    photoUrl TEXT,
+    status TEXT DEFAULT '已接收',
+    createdAt TEXT
+  )`);
+});
+
+// 新增報修單 API
+app.post('/api/repairs', (req, res) => {
+  const {
+    name, studentId, grade, class: className, phone,
+    building, location, itemType, description, photoUrl
+  } = req.body;
+  const id = 'R' + new Date().getFullYear() +
+    String(new Date().getMonth() + 1).padStart(2, '0') +
+    String(new Date().getDate()).padStart(2, '0') +
+    '-' + Math.floor(1000 + Math.random() * 9000);
+  const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  db.run(
+    `INSERT INTO repairs (id, name, studentId, grade, class, phone, building, location, itemType, description, photoUrl, createdAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, name, studentId, grade, className, phone, building, location, itemType, description, photoUrl || '', createdAt],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id });
+    }
+  );
+});
+
+// 查詢報修單 API
+app.get('/api/repairs/:id', (req, res) => {
+  db.get('SELECT * FROM repairs WHERE id = ?', [req.params.id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Not found' });
+    res.json(row);
+  });
+});
+
+app.listen(3001, () => {
+  console.log('Server running on http://localhost:3001');
+});
