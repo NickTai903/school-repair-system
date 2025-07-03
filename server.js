@@ -63,4 +63,14 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+// 管理員登入 API
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'hlhs' && password === '1234') {
+    // 這裡可以回傳一個假的 token，實際應用要用 JWT
+    res.json({ success: true, token: 'admin-token' });
+  } else {
+    res.status(401).json({ success: false, message: '帳號或密碼錯誤' });
+  }
+});
 
