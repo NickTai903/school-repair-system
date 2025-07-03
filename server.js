@@ -73,4 +73,17 @@ app.post('/api/admin/login', (req, res) => {
     res.status(401).json({ success: false, message: '帳號或密碼錯誤' });
   }
 });
+app.put('/api/admin/repairs/:id', (req, res) => {
+  const { urgency, status, adminNote } = req.body;
+  const updatedAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  db.run(
+    `UPDATE repairs SET urgency=?, status=?, adminNote=?, updatedAt=? WHERE id=?`,
+    [urgency, status, adminNote, updatedAt, req.params.id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    }
+  );
+});
+
 
