@@ -24,6 +24,9 @@ db.serialize(() => {
     description TEXT,
     photoUrl TEXT,
     status TEXT DEFAULT '已接收',
+    urgency TEXT DEFAULT '一般',
+    adminNote TEXT DEFAULT '',
+    updatedAt TEXT,
     createdAt TEXT
   )`);
 });
@@ -85,5 +88,13 @@ app.put('/api/admin/repairs/:id', (req, res) => {
     }
   );
 });
+// 取得所有報修單（管理員用）
+app.get('/api/admin/repairs', (req, res) => {
+  db.all('SELECT * FROM repairs ORDER BY createdAt DESC', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
 
 
